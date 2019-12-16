@@ -23,8 +23,8 @@ public class RayTracer {
     //This allows us to shoot a ray in the correct direction into the scene.
 
     //Get the center of each pixel instead of the top left coordinate.
-    double xx = (2 * ((x + 0.5) * (1 / canvas[0].length)) - 1) * camera.angle * camera.aspectRatio;
-    double yy = (1 - 2 * ((y + 0.5) * (1 / canvas.length))) * camera.angle;
+    double xx = (2 * ((x + 0.5) * (1.0 / canvas[0].length)) - 1) * camera.angle * camera.aspectRatio;
+    double yy = (1 - 2 * ((y + 0.5) * (1.0 / canvas.length))) * camera.angle;
 
     //We use the pre-made camera unit vectors to map our pixel centers in relation to the camera in 3d space.
     //Multiply the pixel centers by their corresponding vector to get a 1d representation of the pixel in 3d space.
