@@ -11,7 +11,7 @@ public class RayTracer {
   }
   public Vector[][] render() {
     for(int row = 0; row < canvas.length; row++) {
-      for(int col = 0; col < canvas.length; col++) {
+      for(int col = 0; col < canvas[0].length; col++) {
         Vector pixelColor = shootRay(new Ray(camera.pos, getDir(col, row)));
         canvas[row][col] = pixelColor;
       }
