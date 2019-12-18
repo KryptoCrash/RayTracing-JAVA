@@ -53,22 +53,54 @@ public class RayTracer {
     Vector intersectPoint = inter.intersectPoint;
     Vector hitNormal = inter.hitNormal;
     Vector finalColor = new Vector(0, 0,0);
+    Vector objColor = new Vector(0, 0, 0);
+    double albedo = 0;
     //Calculate diffuse shading. Vector.dot(hitNormal, lightDir)
-    double albedo = inter.obj.albedo;
-    Vector objColor = inter.obj.color;
+    if (inter.obj instanceof Plane) {
+      inter.obj = (Plane) inter.obj;
+      objColor = ((Plane) inter.obj).color;
+      albedo = ((Plane) inter.obj).albedo;
+    }
+    if (inter.obj instanceof Sphere) {
+      inter.obj = (Sphere) inter.obj;
+      objColor = ((Sphere) inter.obj).color;
+      albedo = ((Sphere) inter.obj).albedo;
+    }
+
     for(Light light : scene.lights) {
       Vector lightDir = Vector.norm(Vector.subtract(light.pos, intersectPoint));
       double facingRatio = Math.max(0.02, Vector.dot(hitNormal, lightDir));
-      finalColor = Vector.add(finalColor, Vector.multiply(((albedo / Math.PI) * facingRatio * light.intensity), Vector.multiplyVectors(objColor, light.color.fromRGB())));
+      Vector reflectDir = Vector.norm(Vector.subtract(inter.ray.dir, Vector.multiply(2 * Vector.dot(hitNormal, inter.ray.dir), hitNormal)));
+      Ray reflectRay = new Ray(intersectPoint, reflectDir);
+      double hitScalar = Vector.dot(reflectDir, lightDir);
+      finalColor = Vector.add(finalColor, hitScalar > 0.0 ? Vector.multiply(Math.pow(hitScalar, 20.0) * inShadow(intersectPoint, light, inter.obj), light.color) : new Vector(0, 0, 0));
+      finalColor = Vector.add(finalColor, Vector.multiply(((albedo / Math.PI) * facingRatio * light.intensity) * inShadow(intersectPoint, light, inter.obj), Vector.multiplyVectors(objColor, light.color.fromRGB())));
     }
     return finalColor;
+  }
+  public double inShadow(Vector intersectPoint, Light light, Object interObj) {
+    double shadowScalar = 0;
+    for(int samples = 0; samples < 100; samples++) {
+      double lightMag = Vector.subtract(light.pos, intersectPoint).mag();
+      Vector lightDir = Vector.norm(Vector.subtract(Vector.add(light.pos, new Vector(Math.random(), Math.random(), Math.random())), intersectPoint));
+      Ray shadowRay = new Ray(intersectPoint, lightDir);
+      boolean intersectFound = false;
+      for(Object obj : scene.objects) {
+        Intersection shadowInter = obj.intersect(shadowRay);
+        if(shadowInter.dist > 0 && shadowInter.dist != Float.POSITIVE_INFINITY && shadowInter.dist <= lightMag && obj != interObj) intersectFound = true;
+      }
+      if (!intersectFound) {
+        shadowScalar++;
+      }
+    }
+    return (shadowScalar + Math.random())/100;
   }
   public Intersection checkForIntersection(Ray ray) {
     //Not very complicated. This basically loops through all objects and gets the closest one so we can render it.
     //We use a king of the hill method to discard of anything but the closest intersection.
     Intersection closestInter = null;
     double closestDist = Float.POSITIVE_INFINITY;
-    for(Sphere obj : scene.objects) {
+    for(Object obj : scene.objects) {
       Intersection inter = obj.intersect(ray);
       if(inter.dist != Float.POSITIVE_INFINITY && inter.dist > 0 && inter.dist < closestDist) {
         closestInter = inter;
