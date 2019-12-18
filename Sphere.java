@@ -1,4 +1,4 @@
-public class Sphere {
+public class Sphere extends Object {
   Vector pos;
   double radius;
   Vector color;
@@ -18,11 +18,11 @@ public class Sphere {
       double c = Vector.dot(distToRay, distToRay) - Math.pow(radius, 2);
       double discriminator = Math.pow(b, 2) - 4 * a * c;
       if(discriminator < 0) {
-          return new Intersection(this, ray, Float.POSITIVE_INFINITY);
+          return new Intersection((Sphere) this, ray, Float.POSITIVE_INFINITY);
       }
       double dist = (-b - Math.sqrt(discriminator)) / 2 * a;
       Vector intersectPoint = Vector.add(origin, Vector.multiply(dist, dir));
       Vector hitNormal = Vector.norm(Vector.subtract(intersectPoint, pos));
-      return new Intersection(this, ray, dist, intersectPoint, hitNormal);
+      return new Intersection((Sphere) this, ray, dist, intersectPoint, hitNormal);
   }
 }
